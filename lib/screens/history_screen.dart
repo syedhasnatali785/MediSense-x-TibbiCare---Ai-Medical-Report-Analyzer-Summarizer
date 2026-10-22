@@ -1,6 +1,5 @@
 import 'package:aimedicalreportanalyzer/models/db_model.dart';
 import 'package:aimedicalreportanalyzer/providers/analysis_controller.dart';
-import 'package:aimedicalreportanalyzer/repositories/db_repo.dart';
 import 'package:aimedicalreportanalyzer/screens/report_analysis_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,7 +60,7 @@ class HistoryScreen extends ConsumerWidget {
       ),
       body: history.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Could not load history.')),
+        error: (error, stackTrace) => const Center(child: Text('Could not load history.')),
         data: (items) {
           if (items.isEmpty) {
             return const Center(child: Text('No saved reports yet.'));

@@ -1,5 +1,5 @@
 class AppConfig {
-  /// flutter run --dart-define=WORKER_URL=https://report-analyzer.<you>.workers.dev/analyze
+  /// flutter run --dart-define=WORKER_URL=https://report-analyzer.&lt;you&gt;.workers.dev/analyze
   static const workerUrl = String.fromEnvironment(
     'WORKER_URL',
     defaultValue:

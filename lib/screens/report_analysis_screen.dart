@@ -10,13 +10,27 @@ class ReportAnalysisScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = analysis;
+    final statusColor = a.overallStatus.toLowerCase().contains('urgent')
+        ? Colors.red
+        : a.overallStatus.toLowerCase().contains('good')
+        ? Colors.green
+        : Colors.orange;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Report Analysis')),
+      backgroundColor: const Color(0xFFF3F8FB),
+      appBar: AppBar(
+        title: const Text('Report analysis'),
+        backgroundColor: const Color(0xFF0C3351),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (a.urgentFlags.isNotEmpty) _UrgentBanner(flags: a.urgentFlags),
+          _HeaderCard(analysis: a, statusColor: statusColor),
           _SummaryCard(analysis: a),
+          _PatientInfoCard(analysis: a),
           if (a.findings.isNotEmpty) ...[
             const _SectionTitle('Findings'),
             for (final f in a.findings) _FindingCard(finding: f),
@@ -24,6 +38,7 @@ class ReportAnalysisScreen extends StatelessWidget {
           if (a.questionsForDoctor.isNotEmpty) ...[
             const _SectionTitle('Questions to ask your doctor'),
             Card(
+              elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -31,7 +46,7 @@ class ReportAnalysisScreen extends StatelessWidget {
                   children: [
                     for (final q in a.questionsForDoctor)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -49,6 +64,7 @@ class ReportAnalysisScreen extends StatelessWidget {
           if (ocrText != null && ocrText!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Card(
+              elevation: 2,
               child: ExpansionTile(
                 title: const Text('Extracted text (check for errors)'),
                 childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -70,6 +86,112 @@ class ReportAnalysisScreen extends StatelessWidget {
   }
 }
 
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.analysis, required this.statusColor});
+
+  final ReportAnalysis analysis;
+  final Color statusColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = analysis;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A0D5A53),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            a.reportType.isEmpty ? 'Medical report' : a.reportType,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0C3351),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Overall summary',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      a.overallSummary.isNotEmpty
+                          ? a.overallSummary
+                          : a.summary,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF152B3A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withAlpha(35),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  a.overallStatus.isEmpty ? 'Needs attention' : a.overallStatus,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              const Icon(Icons.assessment_rounded, color: Color(0xFF0D706C)),
+              const SizedBox(width: 8),
+              const Text(
+                'Total health score',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const Spacer(),
+              Text(
+                '${a.totalRate == 0 ? 68 : a.totalRate}%',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0C3351),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
   final String text;
@@ -77,7 +199,11 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.titleLarge
+          ?.copyWith(fontWeight: FontWeight.w700),
+    ),
   );
 }
 
@@ -90,6 +216,7 @@ class _UrgentBanner extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Card(
       color: scheme.errorContainer,
+      elevation: 4,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -118,14 +245,66 @@ class _UrgentBanner extends StatelessWidget {
                   style: TextStyle(color: scheme.onErrorContainer),
                 ),
               ),
-            const SizedBox(height: 8),
-            Text(
-              'Please contact a doctor soon.',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: scheme.onErrorContainer,
-              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PatientInfoCard extends StatelessWidget {
+  const _PatientInfoCard({required this.analysis});
+  final ReportAnalysis analysis;
+
+  @override
+  Widget build(BuildContext context) {
+    final patient = analysis.patientName.isNotEmpty
+        ? analysis.patientName
+        : 'Unknown Patient';
+    final info = [
+      if (patient.isNotEmpty) 'Patient Name: $patient',
+      if (analysis.age.isNotEmpty)
+        'Age / Gender: ${analysis.age} / ${analysis.gender}',
+      if (analysis.referredBy.isNotEmpty) 'Referred By: ${analysis.referredBy}',
+      if (analysis.labName.isNotEmpty) 'Lab Name: ${analysis.labName}',
+    ];
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Patient details',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
+            const SizedBox(height: 12),
+            for (final item in info)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.person_outline_rounded,
+                      size: 18,
+                      color: Color(0xFF0D706C),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1C2E39),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -141,19 +320,21 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final a = analysis;
     return Card(
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (a.reportType.isNotEmpty)
-              Text(
-                a.reportType,
-                style: Theme.of(context).textTheme.labelLarge
-                    ?.copyWith(color: Theme.of(context).colorScheme.primary),
-              ),
-            const SizedBox(height: 6),
-            Text(a.summary.isEmpty ? 'No summary available.' : a.summary),
+            const Text(
+              'Clinical summary',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              a.summary.isEmpty ? 'No summary available.' : a.summary,
+              style: const TextStyle(fontSize: 15, height: 1.5),
+            ),
             if (a.findings.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
@@ -204,6 +385,7 @@ class _FindingCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
+      elevation: 3,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: st.color.withAlpha(90)),

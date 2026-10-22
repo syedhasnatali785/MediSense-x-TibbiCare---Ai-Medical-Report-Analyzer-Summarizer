@@ -1,8 +1,9 @@
-import 'package:aimedicalreportanalyzer/screens/live_scan_screen.dart';
 import 'package:flutter/material.dart';
 
 class ScanHeroCard extends StatelessWidget {
-  const ScanHeroCard({super.key});
+  const ScanHeroCard({super.key, this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +79,7 @@ class ScanHeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           InkWell(
-            onTap: () {
-              MaterialPageRoute(builder: (context) => LiveScanScreen());
-            },
+            onTap: onTap,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               decoration: BoxDecoration(

@@ -68,6 +68,14 @@ class ReportAnalysis {
     required this.urgentFlags,
     required this.questionsForDoctor,
     required this.disclaimer,
+    this.patientName = '',
+    this.age = '',
+    this.gender = '',
+    this.referredBy = '',
+    this.labName = '',
+    this.overallSummary = '',
+    this.overallStatus = 'Needs attention',
+    this.totalRate = 0,
   });
 
   final String reportType;
@@ -76,6 +84,14 @@ class ReportAnalysis {
   final List<String> urgentFlags;
   final List<String> questionsForDoctor;
   final String disclaimer;
+  final String patientName;
+  final String age;
+  final String gender;
+  final String referredBy;
+  final String labName;
+  final String overallSummary;
+  final String overallStatus;
+  final int totalRate;
 
   int get abnormalCount => findings
       .where(
@@ -100,6 +116,18 @@ class ReportAnalysis {
     disclaimer: _s(j['disclaimer']).isEmpty
         ? 'Informational only. This is not a medical diagnosis.'
         : _s(j['disclaimer']),
+    patientName: _s(j['patient_name']),
+    age: _s(j['age']),
+    gender: _s(j['gender']),
+    referredBy: _s(j['referred_by']),
+    labName: _s(j['lab_name']),
+    overallSummary: _s(j['overall_summary']),
+    overallStatus: _s(j['overall_status']).isEmpty
+        ? 'Needs attention'
+        : _s(j['overall_status']),
+    totalRate: (j['total_rate'] is num)
+        ? (j['total_rate'] as num).round()
+        : 0,
   );
 
   Map<String, dynamic> toJson() => {
@@ -109,5 +137,13 @@ class ReportAnalysis {
     'urgent_flags': urgentFlags,
     'questions_for_doctor': questionsForDoctor,
     'disclaimer': disclaimer,
+    'patient_name': patientName,
+    'age': age,
+    'gender': gender,
+    'referred_by': referredBy,
+    'lab_name': labName,
+    'overall_summary': overallSummary,
+    'overall_status': overallStatus,
+    'total_rate': totalRate,
   };
 }

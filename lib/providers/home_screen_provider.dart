@@ -1,4 +1,5 @@
 import 'package:aimedicalreportanalyzer/providers/analysis_controller.dart';
+import 'package:aimedicalreportanalyzer/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -72,6 +73,8 @@ class HomeScreenData {
 
 final homeScreenProvider = FutureProvider<HomeScreenData>((ref) async {
   final reports = await ref.read(reportRepositoryProvider).list();
+  final user = await AuthRepository.instance.getCurrentUser();
+  final name = user?.name.split(' ').first ?? 'Friend';
 
   final recentReports = reports.take(3).map((report) {
     final title = report.reportType.isEmpty
@@ -140,10 +143,10 @@ final homeScreenProvider = FutureProvider<HomeScreenData>((ref) async {
         }).toList();
 
   return HomeScreenData(
-    greeting: 'Good morning, Sarah',
+    greeting: 'Good morning, $name',
     subtitle: totalReports == 0
         ? 'Your health snapshot is empty until you scan a report.'
-        : 'Your latest ${totalReports} report${totalReports == 1 ? '' : 's'} are ready.',
+        : 'Your latest $totalReports report${totalReports == 1 ? '' : 's'} are ready.',
     summaryCards: [
       MetricCardData(
         label: 'Reports',

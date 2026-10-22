@@ -1,4 +1,4 @@
-import 'package:aimedicalreportanalyzer/screens/homescreen.dart';
+import 'package:aimedicalreportanalyzer/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,7 +18,7 @@ class App extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }

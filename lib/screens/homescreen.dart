@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:aimedicalreportanalyzer/components/app_header.dart';
-import 'package:aimedicalreportanalyzer/components/bottom_nav.dart';
 import 'package:aimedicalreportanalyzer/components/metric_card.dart';
 import 'package:aimedicalreportanalyzer/components/report_item.dart';
 import 'package:aimedicalreportanalyzer/components/scan_hero_card.dart';
@@ -9,6 +8,8 @@ import 'package:aimedicalreportanalyzer/components/section_title.dart';
 import 'package:aimedicalreportanalyzer/components/trend_card.dart';
 import 'package:aimedicalreportanalyzer/providers/analysis_controller.dart';
 import 'package:aimedicalreportanalyzer/providers/home_screen_provider.dart';
+import 'package:aimedicalreportanalyzer/repositories/auth_repository.dart';
+import 'package:aimedicalreportanalyzer/screens/auth_screen.dart';
 import 'package:aimedicalreportanalyzer/screens/history_screen.dart';
 import 'package:aimedicalreportanalyzer/screens/live_scan_screen.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +32,74 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _showProfileSheet(BuildContext context) async {
+    final user = await AuthRepository.instance.getCurrentUser();
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 54,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(height: 16),
+            CircleAvatar(
+              radius: 36,
+              backgroundColor: const Color(0xFF0D706C),
+              child: Text(
+                user?.name.substring(0, 1).toUpperCase() ?? 'U',
+                style: const TextStyle(fontSize: 30, color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              user?.name ?? 'User',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              user?.email ?? 'No email',
+              style: const TextStyle(color: Colors.black54),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('My profile'),
+              onTap: () => Navigator.pop(sheetContext),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: const Text('Logout'),
+              onTap: () async {
+                await AuthRepository.instance.logout();
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _fmt(DateTime d) {
-    final two = (int n) => n.toString().padLeft(2, '0');
+    String two(int n) => n.toString().padLeft(2, '0');
     return '${d.day}/${d.month}/${d.year} • ${two(d.hour)}:${two(d.minute)}';
   }
 
@@ -68,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
 
     return dashboardAsync.when(
       loading: () => const Scaffold(
-        backgroundColor: Color(0xFF081B2E),
+        backgroundColor: Colors.white,
         body: Center(child: CircularProgressIndicator(color: Colors.white)),
       ),
       error: (error, stack) => Scaffold(
@@ -89,9 +156,9 @@ class HomeScreen extends ConsumerWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color.fromARGB(255, 15, 69, 123),
-                  Color(0xFF102A3B),
-                  Color(0xFF0B1C2B),
+                  Color.fromARGB(255, 173, 200, 227),
+                  Color.fromARGB(255, 255, 255, 255),
+                  Color.fromARGB(255, 255, 255, 255),
                 ],
               ),
             ),
@@ -100,16 +167,31 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-                    child: AppHeader(
-                      title: dashboard.greeting,
-                      subtitle: dashboard.subtitle,
+                    child: FutureBuilder<String>(
+                      future: AuthRepository.instance
+                          .getCurrentUser()
+                          .then((user) => user?.name.split(' ').first ?? 'Friend'),
+                      builder: (context, snapshot) {
+                        final name = snapshot.data ?? 'Friend';
+                        return AppHeader(
+                          title: 'Good morning, $name',
+                          subtitle: dashboard.subtitle,
+                          onProfileTap: () => _showProfileSheet(context),
+                        );
+                      },
                     ),
                   ),
                   Expanded(
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                       children: [
-                        const _GlassCard(child: ScanHeroCard()),
+                        _GlassCard(
+                          child: ScanHeroCard(
+                            onTap: state.isBusy
+                                ? null
+                                : () => _openScanner(context, ref),
+                          ),
+                        ),
                         const SizedBox(height: 18),
                         Row(
                           children: [
@@ -240,7 +322,10 @@ class HomeScreen extends ConsumerWidget {
                           },
                         ),
                         const SizedBox(height: 12),
-                        if (state.isBusy) _ProgressCard(stage: state.stage),
+                        if (state.isBusy) ...[
+                          const SizedBox(height: 8),
+                          _ProgressCard(stage: state.stage),
+                        ],
                         const SizedBox(height: 18),
                         const Text(
                           'For information only. Not a diagnosis. Always consult a qualified doctor.',
@@ -254,7 +339,6 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          bottomNavigationBar: const BottomNav(),
         );
       },
     );
@@ -262,7 +346,7 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _GlassCard extends StatelessWidget {
-  const _GlassCard({super.key, required this.child});
+  const _GlassCard({required this.child});
   final Widget child;
 
   @override
@@ -271,12 +355,12 @@ class _GlassCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.12),
-          border: Border.all(color: Colors.white.withOpacity(0.18)),
+          color: Colors.white.withValues(alpha: 0.12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.16),
+              color: Colors.black.withValues(alpha: 0.16),
               blurRadius: 24,
               offset: const Offset(0, 15),
             ),
@@ -301,12 +385,14 @@ class _ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
+        color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -327,3 +413,4 @@ class _ProgressCard extends StatelessWidget {
     );
   }
 }
+

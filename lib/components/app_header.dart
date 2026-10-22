@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
 class AppHeader extends StatelessWidget {
+  const AppHeader({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.onProfileTap,
+  });
+
   final String title;
   final String subtitle;
-
-  const AppHeader({super.key, required this.title, required this.subtitle});
+  final VoidCallback? onProfileTap;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +29,7 @@ class AppHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Color(0xFF223B46),
                     ),
                   ),
                 ],
@@ -32,23 +38,33 @@ class AppHeader extends StatelessWidget {
             const Icon(
               Icons.notifications_none_rounded,
               size: 28,
-              color: Color(0xFFB8E0CF),
+              color: Color(0xFF2D6A7A),
             ),
             const SizedBox(width: 12),
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFB8E0CF), Color(0xFFE9C59D)],
+            GestureDetector(
+              onTap: onProfileTap,
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFB8E0CF), Color(0xFFE9C59D)],
+                  ),
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x1A0D5A53),
+                      blurRadius: 12,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
                 ),
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: const Icon(
-                Icons.person,
-                size: 22,
-                color: Color(0xFF1B2F3A),
+                child: const Icon(
+                  Icons.person,
+                  size: 22,
+                  color: Color(0xFF1B2F3A),
+                ),
               ),
             ),
           ],
@@ -66,7 +82,7 @@ class AppHeader extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF283A41),
+                      color: Color(0xFF183648),
                       height: 1.1,
                     ),
                   ),
@@ -75,7 +91,7 @@ class AppHeader extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF607078),
+                      color: Color(0xFF4A6772),
                     ),
                   ),
                 ],
@@ -87,6 +103,13 @@ class AppHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF0A876F),
                 borderRadius: BorderRadius.circular(14),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x220A876F),
+                    blurRadius: 16,
+                    offset: Offset(0, 10),
+                  ),
+                ],
               ),
               child: const Icon(Icons.add, color: Colors.white, size: 24),
             ),

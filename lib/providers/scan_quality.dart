@@ -1,5 +1,3 @@
-import 'dart:ui' show Rect;
-
 import 'package:aimedicalreportanalyzer/models/frame_analyser_m.dart';
 import 'package:flutter/material.dart';
 

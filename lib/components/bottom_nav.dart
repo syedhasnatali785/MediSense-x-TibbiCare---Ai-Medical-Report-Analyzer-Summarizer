@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 
 class BottomNav extends StatelessWidget {
-  const BottomNav({super.key});
+  const BottomNav({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
     final items = [
       {'label': 'Home', 'icon': Icons.home_outlined},
-      {'label': 'Scan', 'icon': Icons.document_scanner_outlined},
-      {'label': 'Reports', 'icon': Icons.folder_outlined},
-      {'label': 'Records', 'icon': Icons.receipt_long_outlined},
+      {'label': 'History', 'icon': Icons.history_rounded},
+      {'label': 'Scan', 'icon': Icons.camera_alt_outlined},
+      {'label': 'Profile', 'icon': Icons.person_outline_rounded},
     ];
 
     return Container(
-      padding: const EdgeInsets.only(top: 12, bottom: 12),
+      padding: const EdgeInsets.only(top: 8, bottom: 10),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -28,43 +35,50 @@ class BottomNav extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final bool selected = index == 0;
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(items.length, (index) {
+            final item = items[index];
+            final bool selected = index == selectedIndex;
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
+            return GestureDetector(
+              onTap: () => onTap(index),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 74,
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? const Color(0xFF0D6768)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  color: selected ? const Color(0xFF0D6768) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  item['icon'] as IconData,
-                  color: selected ? Colors.white : const Color(0xFF5D6771),
-                  size: 26,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      item['icon'] as IconData,
+                      color: selected ? Colors.white : const Color(0xFF5D6771),
+                      size: 26,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item['label'] as String,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        color: selected
+                            ? Colors.white
+                            : const Color(0xFF5D6771),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                item['label'] as String,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected
-                      ? const Color(0xFF0D6768)
-                      : const Color(0xFF5D6771),
-                ),
-              ),
-            ],
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
